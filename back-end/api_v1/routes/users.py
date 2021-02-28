@@ -4,7 +4,7 @@ import secrets
 from flask import Blueprint, jsonify, make_response, request
 
 from ..db.db_users import (db_create_user, db_get_all_users, db_get_one_user,
-                           db_get_user_by_username)
+                           db_get_user_by_username, db_get_user_by_email)
 from ..security.sec_utils import check_hash, generate_hash
 
 users = Blueprint('/api/users', __name__)
@@ -39,13 +39,18 @@ def create_user():
         bio = data["bio"]
         birthdate = datetime.strptime(data["birthdate"], "%Y-%m-%d")
         password = generate_hash(data["password"])
-    except (err):
-        print(err)
-        return make_response(jsonify({"message": "Incorrect data"}), 404)
+
+        try:
+            user_exists = db_get_user_by_email(email) or db_get_user_by_username(username)
+            if user_exists:                
+                return make_response(jsonify({"message": "Username or password taken"}), 400)
+        except:
+            pass            
+    except:
+        return make_response(jsonify({"message": "Incorrect data"}), 400)
     else:
         db_create_user(email, username, bio, birthdate, password)
-        new_user = db_get_user_by_username(username)
-        token = secrets.token_bytes(25)
-        new_user.update({"loginToken": token})
-        print(new_user)
+        new_user = db_get_user_by_username(username)            
+        token = secrets.token_urlsafe(25)
+        new_user[0].update({"loginToken": token})
         return make_response(jsonify(new_user), 201)

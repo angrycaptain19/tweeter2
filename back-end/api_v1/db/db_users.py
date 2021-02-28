@@ -19,6 +19,11 @@ def db_get_user_by_username(username):
 
     return format_users(users)
 
+def db_get_user_by_email(email):
+    users = get("SELECT Id, Email, Username, Bio, Birthdate FROM Users WHERE Email = (?)", [email])
+
+    return format_users(users)
+    
 def format_users(users):
     for user in users:
         user["userId"] = user.pop("id")
