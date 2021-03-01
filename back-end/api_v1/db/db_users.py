@@ -9,7 +9,7 @@ def get_all_users():
 
     return format_users(users)
 
-def get_one_user(user_id):    
+def get_user_by_id(user_id):    
     users = get("SELECT Id, Email, Username, Bio, Birthdate FROM Users WHERE Id = (?)", [user_id])
 
     return format_users(users)
@@ -36,18 +36,6 @@ def get_user_password(user_id):
     password = result[0]["password"]
     return password
 
-def log_user_in(user_id):
-    put("INSERT INTO User_Sessions (User_Id) VALUES (?)", [user_id])
-
-def log_user_out(user_id):
-    put("DELETE FROM User_Sessions WHERE User_Id = (?)", [user_id])
-    
-def is_logged_in(user_id):
-    if get("SELECT * FROM User_Sessions WHERE User_Id = (?)", [user_id]):
-        return True
-    else:
-        return False
-
 def update_user(user_id, data):
     if data.get("username"):
         put("UPDATE Users SET Username = (?) WHERE Id = (?)", [data["username"], user_id])
@@ -56,4 +44,7 @@ def update_user(user_id, data):
     if data.get("bio"):
         put("UPDATE Users SET Bio = (?) WHERE Id = (?)", [data["bio"], user_id])
     if data.get("birthdate"):
-        put("UPDATE Users SET Birthdate = (?) WHERE Id = (?)", [data["birthdate"], user_id])  
+        put("UPDATE Users SET Birthdate = (?) WHERE Id = (?)", [data["birthdate"], user_id])
+
+def delete_user(user_id):
+    put("DELETE FROM Users WHERE Id = (?)", [user_id])

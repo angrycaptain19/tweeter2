@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, make_response, request
 
-from ..db import db_users
+from ..db import db_users, db_sessions
 from ..security.sec_utils import generate_token, check_hash
 
 login = Blueprint('/api/login', __name__)
@@ -16,7 +16,7 @@ def login_user():
         stored_password = db_users.get_user_password(user[0]["userId"])
 
         if check_hash(password_claim, stored_password):
-            db_users.log_user_in(user[0]["userId"])
+            db_sessions.log_user_in(user[0]["userId"])
             token = generate_token(user[0]["userId"])
             user[0].update({"loginToken": token})
             return make_response(jsonify(user), 201)

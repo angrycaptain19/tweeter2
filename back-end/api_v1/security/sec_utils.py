@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from flask import make_response, jsonify, request
 from flask_bcrypt import check_password_hash, generate_password_hash
 from functools import wraps
-from ..db import db_users
+from ..db import db_users, db_sessions
 import jwt
 
 from ...config_secrets import secrets
@@ -38,7 +38,7 @@ def token_required(f):
         except Exception as e:
             return make_response(jsonify({"message": "Invalid token"}), 401)
         else:
-            if db_users.is_logged_in(user_id):
+            if db_sessions.is_logged_in(user_id):
                 return f(user_id, *args, **kws)
             else:
                 return make_response(jsonify({"message": "Please log in"}), 401)

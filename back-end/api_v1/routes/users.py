@@ -1,10 +1,12 @@
-from datetime import datetime
 import secrets
+from datetime import datetime
 
 from flask import Blueprint, jsonify, make_response, request
+from flask_api import status
 
 from ..db import db_users
-from ..security.sec_utils import generate_token, check_hash, generate_hash, token_required
+from ..security.sec_utils import (check_hash, generate_hash, generate_token,
+                                  token_required)
 
 users = Blueprint('/api/users', __name__)
 
@@ -17,7 +19,7 @@ def get_users():
         except:
             return make_response(None, 500)
         else:
-            user = db_users.get_one_user(userId)             
+            user = db_users.get_user_by_id(userId)             
             if user:
                 return make_response(jsonify(user), 200)
             else:
@@ -60,8 +62,6 @@ def update_user(user_id):
     data = request.get_json()
     allowed_fields = {"email", "username", "bio", "birthdate"}
     new_data = dict(filter(lambda elem: elem[0] in allowed_fields, data.items()))
-    print(data)
-    print(new_data)
 
     if new_data:
         db_users.update_user(user_id, data)
@@ -69,3 +69,16 @@ def update_user(user_id):
         return make_response(jsonify({"message": "Incorrect data"}), 400)
 
     return make_response(jsonify({"message": "User updated"}), 200)
+    
+@users.route("/api/users", methods=["DELETE"])
+@token_required
+def delete_user(user_id):
+    data = request.get_json()
+    password_claim = data["password"].encode('utf8')
+    stored_password = db_users.get_user_password(user_id)
+
+    if check_hash(password_claim, stored_password):
+        db_users.delete_user(user_id)
+        return "", status.HTTP_204_NO_CONTENT
+    else:    
+        return make_response(jsonify({"message": "Could not authenticate"}), 400)
