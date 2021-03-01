@@ -33,8 +33,7 @@ def format_users(users):
 
 def get_user_password(user_id):
     result = get("SELECT Password FROM Users WHERE Id = (?)", [user_id])
-    password = result[0]["password"]
-    return password
+    return result[0]["password"]
 
 def update_user(user_id, data):
     if data.get("username"):
