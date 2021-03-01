@@ -9,12 +9,11 @@ from ...config_secrets import secrets
 
 def generate_token(user_id):
     expiry = datetime.utcnow() + timedelta(minutes=+30)
-    token = jwt.encode(
+    return jwt.encode(
             {
                 "exp": expiry,
                 "user_id": user_id
             }, secrets["secret_key"], algorithm="HS256")
-    return token
 
 def generate_hash(password):
     return generate_password_hash(password)
@@ -26,7 +25,7 @@ def token_required(f):
     @wraps(f)
     def decorated_function(*args, **kws):        
         user_id = None
-        
+
         try:            
             data = request.get_json()
             raw_token = data["loginToken"]
@@ -34,7 +33,6 @@ def token_required(f):
             user_id = decoded_token["user_id"]
         except jwt.ExpiredSignatureError:
             return make_response(jsonify({"message": "Expired token"}), 401)
-            db_users.log_user_out(user_id)
         except Exception as e:
             return make_response(jsonify({"message": "Invalid token"}), 401)
         else:
